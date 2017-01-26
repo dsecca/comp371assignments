@@ -9,6 +9,8 @@
 #include "glm\glm\gtc\type_ptr.hpp"
 #include "Shader.h"
 
+glm::vec3 triangle_scale;
+const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 
 //Here we check if the escape key is pressed
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -18,6 +20,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
+
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		triangle_scale.x += TRIANGLE_MOVEMENT_STEP;
+	}
+		
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP;
+	}
+		
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		triangle_scale.y += TRIANGLE_MOVEMENT_STEP;
+	}
+
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP;
+	}
+		
 }
 
 
@@ -66,7 +85,8 @@ int main() {
 	GLuint VBO, VAO;//A place to store vertices
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);//Giving the buffer above an id
-
+	
+	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);//Bind the buffer to a target object
