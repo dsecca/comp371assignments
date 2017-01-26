@@ -9,9 +9,6 @@
 #include "glm\glm\gtc\type_ptr.hpp"
 #include "Shader.h"
 
-glm::vec3 triangle_scale;
-const float TRIANGLE_MOVEMENT_STEP = 0.1f;
-
 //Here we check if the escape key is pressed
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -19,22 +16,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	// closing the application
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
-
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		triangle_scale.x += TRIANGLE_MOVEMENT_STEP;
-	}
-		
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP;
-	}
-		
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		triangle_scale.y += TRIANGLE_MOVEMENT_STEP;
-	}
-
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP;
 	}
 		
 }
@@ -104,8 +85,11 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);//Clear colour buffer
 		glClear(GL_COLOR_BUFFER_BIT);
 
+
 		/*rendering commands are placed here*/
 		shader.use();
+		//Apply transformations here
+
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
