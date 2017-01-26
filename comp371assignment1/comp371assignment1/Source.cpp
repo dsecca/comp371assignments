@@ -4,6 +4,9 @@
 // GLFW
 #include <glfw3.h>
 #include <iostream>
+#include "glm\glm\glm.hpp"
+#include "glm\glm\gtc\matrix_transform.hpp"
+#include "glm\glm\gtc\type_ptr.hpp"
 #include "Shader.h"
 
 
@@ -44,6 +47,7 @@ int main() {
 		return -1;
 	}
 
+	/************WINDOW HANDLING***************/
 	int width;
 	int height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -58,6 +62,7 @@ int main() {
 		0.0f, 0.5f, 0.0f
 	};
 
+	//Can encapsulate this section in a class?
 	GLuint VBO, VAO;//A place to store vertices
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);//Giving the buffer above an id
