@@ -1,0 +1,11 @@
+/*****Fragment Shader*****/
+//Calculates the colour output of the pixels
+//Colour is represented by the "color" variable where arguments in vec4 function
+//are (red, green, blue, alpha (opacity)) RGBA
+
+#version 330 core
+out vec4 color;
+
+void main(){
+color = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+}

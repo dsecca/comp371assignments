@@ -20,17 +20,19 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 		//Open files
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
+		std::cout << "Files are open" << std::endl;
 
 		//Read buffer contents into the stringstream
 		vShaderStream << vShaderFile.rdbuf();
 		fShaderStream << fShaderFile.rdbuf();
-
+		std::cout << "Files are read" << std::endl;
 		vShaderFile.close();
 		fShaderFile.close();
-
+		std::cout << "Files are closed" << std::endl;
 		//Convert stream into GLchar array
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
+		std::cout << "Convert to GLchar array" << std::endl;
 
 
 	}
@@ -41,8 +43,9 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 	//Convert strings to GLchar
 	vShaderCode = vertexCode.c_str();
 	fShaderCode = fragmentCode.c_str();
+	std::cout << "Convert to GLchar" << std::endl;
 
-	//2. Compile and link shaders as in source.cpp
+	//Compile and link shaders as in source.cpp
 	GLuint vertex;
 	GLuint fragment;
 	GLint success;
@@ -50,6 +53,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 
 	/*Vertex Shader*/
 	vertex = glCreateShader(GL_VERTEX_SHADER);
+	std::cout << "glCreateShader" << std::endl;
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	// Print compile errors if any
@@ -90,7 +94,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
 	glDeleteShader(fragment);
 }
 
-void Shader::Use() {
+void Shader::use() {
 	//Use the program created in the constructor
 	glUseProgram(this->Program);
 }
