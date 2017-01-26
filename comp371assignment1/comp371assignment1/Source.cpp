@@ -23,6 +23,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main() {
 
+	glm::mat4 trans;
+	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
 	glfwInit();//Initializes the GLFW library
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//Configures the window (3 indicates version of OpenGL in this case 3)
