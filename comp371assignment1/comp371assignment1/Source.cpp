@@ -12,29 +12,57 @@
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
-glm::vec3 triangle_scale;
+glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
+glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
+
 glm::mat4 model_matrix;
 glm::mat4 view_matrix;
+
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
+const float CAMERA_PAN_STEP = 0.2f;
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	std::cout << key << std::endl;
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
+	}
 
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
 		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP;
+	}
 
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
 		triangle_scale.x += TRIANGLE_MOVEMENT_STEP;
+	}
 
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
 		triangle_scale.y += TRIANGLE_MOVEMENT_STEP;
+	}
+		
 
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
 		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP;
+	}
+		
+	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+		camera_translation.x += CAMERA_PAN_STEP;
+	}
+		
+
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+		camera_translation.x -= CAMERA_PAN_STEP;
+	}
+		
+	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+		camera_translation.y -= CAMERA_PAN_STEP;
+	}
+
+	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+		camera_translation.y += CAMERA_PAN_STEP;
+	}
+		
 
 }
 
@@ -104,7 +132,7 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
-	triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f
+	//triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f
 
 	GLuint transformLoc = glGetUniformLocation(shader.Program, "model_matrix");
 	GLuint transformView = glGetUniformLocation(shader.Program, "view_matrix");
