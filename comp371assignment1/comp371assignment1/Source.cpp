@@ -9,101 +9,139 @@
 #include "glm\glm\gtc\type_ptr.hpp"
 #include "Shader.h"
 
-//Here we check if the escape key is pressed
+// Window dimensions
+const GLuint WIDTH = 800, HEIGHT = 600;
+
+glm::vec3 triangle_scale;
+glm::mat4 model_matrix;
+glm::mat4 view_matrix;
+const float TRIANGLE_MOVEMENT_STEP = 0.1f;
+
+// Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	// When a user presses the escape key, we set the WindowShouldClose property to true, 
-	// closing the application
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+	std::cout << key << std::endl;
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
-		
+
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP;
+
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+		triangle_scale.x += TRIANGLE_MOVEMENT_STEP;
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+		triangle_scale.y += TRIANGLE_MOVEMENT_STEP;
+
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP;
+
 }
 
-
-int main() {
-
-	glm::mat4 trans;
-	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-
-	glfwInit();//Initializes the GLFW library
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);//Configures the window (3 indicates version of OpenGL in this case 3)
+// The MAIN function, from here we start the application and run the game loop
+int main()
+{
+	std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
+	// Init GLFW
+	glfwInit();
+	// Set all the required options for GLFW
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	//Pointer to window object
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Assignment 1", nullptr, nullptr);
-
-
-	if (window == nullptr) {
+	// Create a GLFWwindow object that we can use for GLFW's functions
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Triangle", nullptr, nullptr);
+	if (window == nullptr)
+	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-
 	glfwMakeContextCurrent(window);
+	// Set the required callback functions
+	glfwSetKeyCallback(window, key_callback);
+
+	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK) {
+	// Initialize GLEW to setup the OpenGL Function pointers
+	if (glewInit() != GLEW_OK)
+	{
 		std::cout << "Failed to initialize GLEW" << std::endl;
 		return -1;
 	}
 
-	/************WINDOW HANDLING***************/
-	int width;
-	int height;
+	// Define the viewport dimensions
+	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
+
 	glViewport(0, 0, width, height);
 
+	// Build and compile our shader programs
 	Shader shader("vshader.txt", "fragshader.txt");
 
-	/*For triangle generation*/
-	GLfloat vertices[]{ //3D triangle coordinates (x,y,z) here z is zero so triangle looks like it's 2D
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
+	shader.use();
+
+	GLfloat vertices[] = {
+		0.0f, 0.5f, 0.0f,  // Top
+		0.5f, -0.5f, 0.0f,  // Bottom Right
+		-0.5f, -0.5f, 0.0f,  // Bottom Left
 	};
 
-	//Can encapsulate this section in a class?
-	GLuint VBO, VAO;//A place to store vertices
+	GLuint VAO, VBO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);//Giving the buffer above an id
-	
+	glGenBuffers(1, &VBO);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);//Bind the buffer to a target object
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);//Copies defined vertex data into buffer's memory
-																			  //Linking Vertex Attributes
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 
-	//This loop allows the window display to stay open till it is told to stop
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents(); //Checks for mouse clicks, keyboard inputs and then calls corresponding functions
+	glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);//Clear colour buffer
+	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+
+	triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f
+
+	GLuint transformLoc = glGetUniformLocation(shader.Program, "model_matrix");
+	GLuint transformView = glGetUniformLocation(shader.Program, "view_matrix");
+
+	// Game loop
+	while (!glfwWindowShouldClose(window))
+	{
+		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+		glfwPollEvents();
+
+		// Render
+		// Clear the colorbuffer
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//camera moevment
+		//These we initialized above but since we want it to change at each frame
+		//we recall them at each frame generation
+		
+		/*Camera commands go here*/
+		
+		glm::mat4 model_matrix;
+		model_matrix = glm::translate(model_matrix, triangle_scale);
 
-		/*rendering commands are placed here*/
-		shader.use();
-		//Apply transformations here
+		//Here we a
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix)); //broadcast the uniform value to the shaders
+		glUniformMatrix4fv(transformView, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 
+		// Swap the screen buffers
 		glfwSwapBuffers(window);
-		glfwSetKeyCallback(window, key_callback);//This function will close the window on the command of the key_callback user function (See above main)
 	}
-	//Deallocate resources
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glfwTerminate();//Clean up after using resources
 
+	// Terminate GLFW, clearing any resources allocated by GLFW.
+	glfwTerminate();
 	return 0;
 }

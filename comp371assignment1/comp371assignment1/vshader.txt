@@ -1,10 +1,13 @@
-/*****Vertex Shader*****/
-//Processes individual vertices
 
 #version 330 core
   
 layout (location = 0) in vec3 position;
 
-void main(){
-    gl_Position = vec4(position.x, position.y, position.z, 1.0);
+uniform mat4 model_matrix;
+uniform mat4 view_matrix;
+//uniform mat4 projection_matrix;
+//If there's variable that's not being used, image won't draw
+void main()
+{
+    gl_Position = view_matrix * model_matrix * vec4(position.x, position.y, position.z, 1.0);
 }
