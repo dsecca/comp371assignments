@@ -28,65 +28,78 @@ glm::vec3 camera_up = glm::cross(camera_direction, camera_right);
 
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 const float CAMERA_PAN_STEP = 0.2f;
+bool keys[1024]; //for camera smootheness
 
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
-	std::cout << key << std::endl;
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
+
+	GLfloat pan_speed = 0.1f; //regulate how fast we can pan the camera
+	GLfloat scale_speed = 0.3f;
+
+	if (action == GLFW_PRESS) {
+		keys[key] = true;
+	}
+	else if (action == GLFW_RELEASE) {
+		keys[key] = false;
+	}
+
+	//std::cout << key << std::endl;
+
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP;
+	if (keys[GLFW_KEY_LEFT]) {
+		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP * scale_speed;
 	}
 
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		triangle_scale.x += TRIANGLE_MOVEMENT_STEP;
+	if (keys[GLFW_KEY_RIGHT]) {
+		triangle_scale.x += TRIANGLE_MOVEMENT_STEP * scale_speed;
 	}
 
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		triangle_scale.y += TRIANGLE_MOVEMENT_STEP;
+	if (keys[GLFW_KEY_UP]) {
+		triangle_scale.y += TRIANGLE_MOVEMENT_STEP * scale_speed;
 	}
 		
 
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP;
+	if (keys[GLFW_KEY_DOWN]) {
+		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP * scale_speed;
 	}
 		
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-		camera_translation.x += CAMERA_PAN_STEP;
+	if (keys[GLFW_KEY_D]) {
+		camera_translation.x += CAMERA_PAN_STEP * pan_speed;
 	}
 		
 
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-		camera_translation.x -= CAMERA_PAN_STEP;
+	if (keys[GLFW_KEY_A]) {
+		camera_translation.x -= CAMERA_PAN_STEP * pan_speed;
 	}
 		
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-		camera_translation.y -= CAMERA_PAN_STEP;
+	if (keys[GLFW_KEY_S]) {
+		camera_translation.y -= CAMERA_PAN_STEP * pan_speed;
 	}
 
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		camera_translation.y += CAMERA_PAN_STEP;
+	if (keys[GLFW_KEY_W]) {
+		camera_translation.y += CAMERA_PAN_STEP * pan_speed;
 	}
+		
+}
 
+void move_around() {
 	//Walking around
-	GLfloat cameraSpeed = 0.05f;
-	if (key == GLFW_KEY_I) {
-		camera_position += cameraSpeed * camera_direction;
-	}
-	if (key == GLFW_KEY_K) {
+	GLfloat cameraSpeed = 0.0005f;
+	if (keys[GLFW_KEY_I]) {
 		camera_position -= cameraSpeed * camera_direction;
 	}
-	if (key == GLFW_KEY_J) {
+	if (keys[GLFW_KEY_K]) {
+		camera_position += cameraSpeed * camera_direction;
+	}
+	if (keys[GLFW_KEY_J]) {
 		camera_position -= glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
-	if (key == GLFW_KEY_L) {
+	if (keys[GLFW_KEY_L]) {
 		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
-		
-
 }
 
 // The MAIN function, from here we start the application and run the game loop
@@ -165,6 +178,7 @@ int main()
 	{
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
+		move_around();
 
 		// Render
 		// Clear the colorbuffer
@@ -181,9 +195,7 @@ int main()
 		model_matrix = glm::scale(model_matrix, triangle_scale);
 		//model_matrix = glm::translate(model_matrix, triangle_scale);
 
-		GLfloat radius = 1.0f;
-		GLfloat camX = sin(glfwGetTime()) * radius;
-		GLfloat camZ = cos(glfwGetTime()) * radius;
+
 		glm::mat4 view_matrix;
 		//view_matrix = glm::translate(view_matrix, camera_translation);
 		/*view_matrix = glm::lookAt(glm::vec3(camX, 0.0f, camZ), //camera positioned here
