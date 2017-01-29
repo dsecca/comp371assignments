@@ -29,12 +29,14 @@ glm::vec3 camera_up = glm::cross(camera_direction, camera_right);
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 const float CAMERA_PAN_STEP = 0.2f;
 bool keys[1024]; //for camera smootheness
+GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
+GLfloat lastFrame = 0.0f;  	// Time of last frame
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
 
-	GLfloat pan_speed = 0.1f; //regulate how fast we can pan the camera
-	GLfloat scale_speed = 0.3f;
+	GLfloat pan_speed = 20.0f * deltaTime; //regulate how fast we can pan the camera
+	GLfloat scale_speed = 70.0f * deltaTime;
 
 	if (action == GLFW_PRESS) {
 		keys[key] = true;
@@ -87,7 +89,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void move_around() {
 	//Walking around
-	GLfloat cameraSpeed = 0.0005f;
+	GLfloat cameraSpeed = /*0.0005f*/ 0.5f * deltaTime;
 	if (keys[GLFW_KEY_I]) {
 		camera_position -= cameraSpeed * camera_direction;
 	}
@@ -176,6 +178,11 @@ int main()
 	//Anything that may change at every frame must be declared within the game loop
 	while (!glfwWindowShouldClose(window))
 	{
+		//calculate delta time
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 		move_around();
