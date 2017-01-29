@@ -157,10 +157,10 @@ int main()
 		//model_matrix = glm::translate(model_matrix, triangle_scale);
 
 		glm::mat4 view_matrix;
-		view_matrix = glm::translate(view_matrix, camera_translation);
-		/*view_matrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), //camera positioned here
+		//view_matrix = glm::translate(view_matrix, camera_translation);
+		view_matrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), //camera positioned here
 			glm::vec3(0.0f, 0.0f, 0.0f), //looks at origin
-			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector*/
+			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector
 
 		glm::mat4 projection_matrix;
 		projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
