@@ -31,6 +31,11 @@ const float CAMERA_PAN_STEP = 0.2f;
 bool keys[1024]; //for camera smootheness
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
+GLfloat lastX = 400; //For mouse callback calculations
+GLfloat lastY = 300;
+GLfloat yaw = -90.0f;	// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
+GLfloat pitch = 0.0f;
+bool firstMouse = true;
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
@@ -89,7 +94,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void move_around() {
 	//Walking around
-	GLfloat cameraSpeed = /*0.0005f*/ 0.5f * deltaTime;
+	GLfloat cameraSpeed = 0.5f * deltaTime;
 	if (keys[GLFW_KEY_I]) {
 		camera_position -= cameraSpeed * camera_direction;
 	}
@@ -102,6 +107,43 @@ void move_around() {
 	if (keys[GLFW_KEY_L]) {
 		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
+}
+
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+	//Prevents screen from jumping when mouse first enters the window
+	if (firstMouse){ // this bool variable is initially set to true
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	GLfloat sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+	
+	yaw += xoffset;
+	pitch += yoffset;
+
+	//Constrain the pitch to prevent the screen from flipping
+	if (pitch > 89.0f) {
+		pitch = 89.0f;
+	}
+	if (pitch < -89.0f) {
+		pitch = -89.0f;
+	}
+
+	//here we calculate the actual direction vector that results from the adjusted yaw and pitch
+	glm::vec3 front;
+	front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+	front.y = sin(glm::radians(pitch));
+	front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+	camera_translation = glm::normalize(front); //This line may cause errors
 }
 
 // The MAIN function, from here we start the application and run the game loop
@@ -125,8 +167,13 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+
+	//Set cursor options to move around with the mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
