@@ -14,9 +14,12 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
 glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
+//glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
 glm::mat4 model_matrix;
 glm::mat4 view_matrix;
+//glm::mat4 projection_matrix;
 
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 const float CAMERA_PAN_STEP = 0.2f;
@@ -132,10 +135,9 @@ int main()
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
-	//triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f
-
 	GLuint transformLoc = glGetUniformLocation(shader.Program, "model_matrix");
 	GLuint transformView = glGetUniformLocation(shader.Program, "view_matrix");
+	GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection_matrix");
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -155,11 +157,22 @@ int main()
 		/*Camera commands go here*/
 		
 		glm::mat4 model_matrix;
-		model_matrix = glm::translate(model_matrix, triangle_scale);
+		model_matrix = glm::scale(model_matrix, triangle_scale);
+		//model_matrix = glm::translate(model_matrix, triangle_scale);
 
-		//Here we a
+		glm::mat4 view_matrix;
+		view_matrix = glm::translate(view_matrix, camera_translation);
+		/*view_matrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), //camera positioned here
+			glm::vec3(0.0f, 0.0f, 0.0f), //looks at origin
+			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector*/
+
+		glm::mat4 projection_matrix;
+		projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
+
+		//Here we get the matrices located at the uniform location in the shader programs
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix)); //broadcast the uniform value to the shaders
 		glUniformMatrix4fv(transformView, 1, GL_FALSE, glm::value_ptr(view_matrix));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
