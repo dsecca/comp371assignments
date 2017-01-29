@@ -36,6 +36,7 @@ GLfloat lastY = 300;
 GLfloat yaw = -90.0f;	// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
 GLfloat pitch = 0.0f;
 bool firstMouse = true;
+GLfloat field_of_view = 45.0f;
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
@@ -146,6 +147,23 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	camera_translation = glm::normalize(front); //This line may cause errors
 }
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+
+	GLfloat mouse_scale_speed = 70.0f * deltaTime;
+	if (field_of_view >= 1.0f && field_of_view <= 45.0f) {
+		field_of_view -= yoffset * mouse_scale_speed;
+	}
+		
+	if (field_of_view <= 1.0f) {
+		field_of_view = 1.0f;
+	}
+		
+	if (field_of_view >= 45.0f) {
+		field_of_view = 45.0f;
+	}
+		
+}
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -174,6 +192,7 @@ int main()
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -243,8 +262,6 @@ int main()
 		//These we initialized above but since we want it to change at each frame
 		//we recall them at each frame generation
 		
-		/*Camera commands go here*/
-		
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
 		//model_matrix = glm::translate(model_matrix, triangle_scale);
@@ -258,7 +275,7 @@ int main()
 		view_matrix = glm::lookAt(camera_position, camera_position + camera_translation, camera_up);
 
 		glm::mat4 projection_matrix;
-		projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
+		projection_matrix = glm::perspective(field_of_view, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
 
 		//Here we get the matrices located at the uniform location in the shader programs
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix)); //broadcast the uniform value to the shaders
