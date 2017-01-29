@@ -13,9 +13,18 @@
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
+/*Camera*/
+//we give the camera its own coordinate system
 glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
-//glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
-//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 3.0f); //z-axis is going through the screen (+ve towards you)
+glm::vec3 camera_target = glm::vec3(0.0f, 0.0f, 0.0f); //Where we want the camera to look, in this case it's the origin
+//Camera's z-axis
+glm::vec3 camera_direction = glm::normalize(camera_position - camera_target); //Subtracting position and target vectors yields the direction vector
+//Camera's x-axis (cross of direction vector (+ve z-axis) and a vector pointing up (in +ve y-axis direction) 
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);// a vector pointing in positive y-axis
+glm::vec3 camera_right = glm::normalize(glm::cross(up, camera_direction));
+//Camera's y-axis (cross product of camera_direction and camera_right vectors)
+glm::vec3 camera_up = glm::cross(camera_direction, camera_right);
 
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 const float CAMERA_PAN_STEP = 0.2f;
@@ -60,6 +69,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 		camera_translation.y += CAMERA_PAN_STEP;
+	}
+
+	//Walking around
+	GLfloat cameraSpeed = 0.05f;
+	if (key == GLFW_KEY_I) {
+		camera_position += cameraSpeed * camera_direction;
+	}
+	if (key == GLFW_KEY_K) {
+		camera_position -= cameraSpeed * camera_direction;
+	}
+	if (key == GLFW_KEY_J) {
+		camera_position -= glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
+	}
+	if (key == GLFW_KEY_L) {
+		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
 		
 
@@ -135,7 +159,8 @@ int main()
 	GLuint transformView = glGetUniformLocation(shader.Program, "view_matrix");
 	GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection_matrix");
 
-	// Game loop
+	/****Game Loop****/
+	//Anything that may change at every frame must be declared within the game loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
@@ -156,11 +181,15 @@ int main()
 		model_matrix = glm::scale(model_matrix, triangle_scale);
 		//model_matrix = glm::translate(model_matrix, triangle_scale);
 
+		GLfloat radius = 1.0f;
+		GLfloat camX = sin(glfwGetTime()) * radius;
+		GLfloat camZ = cos(glfwGetTime()) * radius;
 		glm::mat4 view_matrix;
 		//view_matrix = glm::translate(view_matrix, camera_translation);
-		view_matrix = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), //camera positioned here
+		/*view_matrix = glm::lookAt(glm::vec3(camX, 0.0f, camZ), //camera positioned here
 			glm::vec3(0.0f, 0.0f, 0.0f), //looks at origin
-			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector
+			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector*/
+		view_matrix = glm::lookAt(camera_position, camera_position + camera_translation, camera_up);
 
 		glm::mat4 projection_matrix;
 		projection_matrix = glm::perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
