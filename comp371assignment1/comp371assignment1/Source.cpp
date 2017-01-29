@@ -17,10 +17,6 @@ glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
 //glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
 //glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::mat4 model_matrix;
-glm::mat4 view_matrix;
-//glm::mat4 projection_matrix;
-
 const float TRIANGLE_MOVEMENT_STEP = 0.1f;
 const float CAMERA_PAN_STEP = 0.2f;
 
