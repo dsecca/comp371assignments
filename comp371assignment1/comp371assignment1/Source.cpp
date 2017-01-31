@@ -16,8 +16,9 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
 
 /*Vectors for Points and Translations*/
-std::vector<GLuint> profilePoints;
-std::vector<GLuint> trajectoryPoints;
+std::vector<GLfloat> profilePoints;
+std::vector<GLfloat> trajectoryPoints;
+int spans;//for rotational
 
 /*Camera*/
 //we give the camera its own coordinate system
@@ -176,15 +177,52 @@ int mode(std::string input) {
 	int mode;
 	file.open(input);
 	file >> mode;//Read first line
+	file.close();
 
 	return mode;
 }
 
-void loadDataPoints(std::string input) {
+void loadProfileTrajectoryData(std::string input) {
 	std::fstream file;
+	int temp, profile_points, trajectory_points;
+	GLfloat x, y, z;
 	file.open(input);
-	
 
+	file >> temp; //Skip first line
+	file >> profile_points;
+
+	for(int i = 0; i < profile_points; i++) {
+		file >> x >> y >> z; //Read points from file
+		profilePoints.push_back(x);
+		profilePoints.push_back(y);
+		profilePoints.push_back(z);
+	}
+
+	file >> trajectory_points;
+	for (int i = 0; i < trajectory_points; i++) {
+		file >> x >> y >> z; //Read points from file
+		trajectoryPoints.push_back(x);
+		trajectoryPoints.push_back(y);
+		trajectoryPoints.push_back(z);
+	}
+}
+
+void loadProfileData(std::string input) {
+	std::fstream file;
+	int temp, profile_points;
+	GLfloat x, y, z;
+	file.open(input);
+
+	file >> temp; //Skip first line
+	file >> spans;
+	file >> profile_points;
+
+	for (int i = 0; i < profile_points; i++) {
+		file >> x >> y >> z; //Read points from file
+		profilePoints.push_back(x);
+		profilePoints.push_back(y);
+		profilePoints.push_back(z);
+	}
 }
 
 // The MAIN function, from here we start the application and run the game loop
@@ -238,6 +276,24 @@ int main()
 
 	shader.use();
 
+	/**Load data from file into vectors of profile and/or trajectory points**/
+	if (mode("input_a1.txt") == 0 ) {
+		loadProfileTrajectoryData("input_a1.txt");
+	}
+	else {
+		loadProfileData("input_a1.txt");
+	}
+
+	/*std::cout << "Profile points" << std::endl;
+	for (int i = 0; i < profilePoints.size(); i++) {
+		std::cout << profilePoints[i] << std::endl;
+	}
+
+	std::cout << "Trajectory points" << std::endl;
+	for (int i = 0; i < trajectoryPoints.size(); i++) {
+		std::cout << trajectoryPoints[i] << std::endl;
+	}*/
+	
 	GLfloat vertices[] = {
 		0.0f, 0.5f, 0.0f,  // Top
 		0.5f, -0.5f, 0.0f,  // Bottom Right
