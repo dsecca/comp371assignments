@@ -122,6 +122,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="fragshader.txt" />
+    <Text Include="input_a1.txt" />
     <Text Include="vshader.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

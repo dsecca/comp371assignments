@@ -8,21 +8,30 @@
 #include "glm\glm\gtc\matrix_transform.hpp"
 #include "glm\glm\gtc\type_ptr.hpp"
 #include "Shader.h"
+#include <vector>
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
+
+/*Vectors for Points and Translations*/
+std::vector<GLuint> profilePoints;
+std::vector<GLuint> trajectoryPoints;
+
 /*Camera*/
 //we give the camera its own coordinate system
 glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 3.0f); //z-axis is going through the screen (+ve towards you)
 glm::vec3 camera_target = glm::vec3(0.0f, 0.0f, 0.0f); //Where we want the camera to look, in this case it's the origin
+
 //Camera's z-axis
 glm::vec3 camera_direction = glm::normalize(camera_position - camera_target); //Subtracting position and target vectors yields the direction vector
+
 //Camera's x-axis (cross of direction vector (+ve z-axis) and a vector pointing up (in +ve y-axis direction) 
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);// a vector pointing in positive y-axis
 glm::vec3 camera_right = glm::normalize(glm::cross(up, camera_direction));
+
 //Camera's y-axis (cross product of camera_direction and camera_right vectors)
 glm::vec3 camera_up = glm::cross(camera_direction, camera_right);
 
@@ -40,7 +49,6 @@ GLfloat field_of_view = 45.0f;
 
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
-
 	GLfloat pan_speed = 20.0f * deltaTime; //regulate how fast we can pan the camera
 	GLfloat scale_speed = 70.0f * deltaTime;
 
@@ -50,8 +58,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if (action == GLFW_RELEASE) {
 		keys[key] = false;
 	}
-
-	//std::cout << key << std::endl;
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -164,6 +170,23 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 		
 }
 
+//Pass input file to determine if rotation or translation
+int mode(std::string input) {
+	std::fstream file;
+	int mode;
+	file.open(input);
+	file >> mode;//Read first line
+
+	return mode;
+}
+
+void loadDataPoints(std::string input) {
+	std::fstream file;
+	file.open(input);
+	
+
+}
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -220,6 +243,9 @@ int main()
 		-0.5f, -0.5f, 0.0f,  // Bottom Left
 	};
 
+	//Here we create a vector to store the vertices
+
+
 	GLuint VAO, VBO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -257,10 +283,6 @@ int main()
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		//camera moevment
-		//These we initialized above but since we want it to change at each frame
-		//we recall them at each frame generation
 		
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
