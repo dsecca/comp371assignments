@@ -191,6 +191,7 @@ void loadDataPoints(std::string input) {
 int main()
 {
 	std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
+	std::cout << "The file reads " << mode("input_a1.txt") << std::endl;
 	// Init GLFW
 	glfwInit();
 	// Set all the required options for GLFW
@@ -210,11 +211,11 @@ int main()
 	glfwMakeContextCurrent(window);
 
 	//Set cursor options to move around with the mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	//glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
