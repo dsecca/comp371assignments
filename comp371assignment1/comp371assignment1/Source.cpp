@@ -18,6 +18,8 @@ glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 compo
 /*Vectors for Points and Translations*/
 std::vector<GLfloat> profilePoints;
 std::vector<GLfloat> trajectoryPoints;
+//float profilePnts[];
+//float trajectoryPnts[];
 int spans;//for rotational
 
 /*Camera*/
@@ -225,6 +227,10 @@ void loadProfileData(std::string input) {
 	}
 }
 
+void createProfileVertex() {
+
+}
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -285,16 +291,16 @@ int main()
 	}
 
 	/*std::cout << "Profile points" << std::endl;
-	for (int i = 0; i < profilePoints.size(); i++) {
+	for (int i = 0; i < 6; i++) {
 		std::cout << profilePoints[i] << std::endl;
 	}
 
 	std::cout << "Trajectory points" << std::endl;
-	for (int i = 0; i < trajectoryPoints.size(); i++) {
+	for (int i = 0; i < 6; i++) {
 		std::cout << trajectoryPoints[i] << std::endl;
 	}*/
 	
-	GLfloat vertices[] = {
+	GLfloat vertex[] = {
 		0.0f, 0.5f, 0.0f,  // Top
 		0.5f, -0.5f, 0.0f,  // Bottom Right
 		-0.5f, -0.5f, 0.0f,  // Bottom Left
@@ -310,7 +316,7 @@ int main()
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
@@ -362,7 +368,7 @@ int main()
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_LINE_STRIP, 0, 3);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
