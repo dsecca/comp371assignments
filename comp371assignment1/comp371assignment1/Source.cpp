@@ -18,8 +18,6 @@ glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 compo
 /*Vectors for Points and Translations*/
 std::vector<GLfloat> profilePoints;
 std::vector<GLfloat> trajectoryPoints;
-//float profilePnts[];
-//float trajectoryPnts[];
 int spans;//for rotational
 
 /*Camera*/
@@ -226,11 +224,6 @@ void loadProfileData(std::string input) {
 		profilePoints.push_back(z);
 	}
 }
-
-void createProfileVertex() {
-
-}
-
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -290,33 +283,29 @@ int main()
 		loadProfileData("input_a1.txt");
 	}
 
-	/*std::cout << "Profile points" << std::endl;
-	for (int i = 0; i < 6; i++) {
-		std::cout << profilePoints[i] << std::endl;
-	}
-
-	std::cout << "Trajectory points" << std::endl;
-	for (int i = 0; i < 6; i++) {
-		std::cout << trajectoryPoints[i] << std::endl;
-	}*/
-	
-	GLfloat vertex[] = {
-		0.0f, 0.5f, 0.0f,  // Top
-		0.5f, -0.5f, 0.0f,  // Bottom Right
-		-0.5f, -0.5f, 0.0f,  // Bottom Left
-	};
 
 	//Here we create a vector to store the vertices
 
 
-	GLuint VAO, VBO;
+	GLuint VAO, VBO, VBO2;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &VBO2);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO);
 
+	/*Bind first VBO for Profile Curve*/
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, profilePoints.size()* sizeof(GLfloat), &profilePoints.front(), GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+
+	/*Bind first VBO for Trajectory Curve*/
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	glBufferData(GL_ARRAY_BUFFER, trajectoryPoints.size()*sizeof(GLfloat), &trajectoryPoints.front(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
@@ -346,10 +335,16 @@ int main()
 		// Clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// check OpenGL error
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR) {
+			std::cerr << "OpenGL error: " << err << std::endl;
+		}
 		
 		glm::mat4 model_matrix;
 		model_matrix = glm::scale(model_matrix, triangle_scale);
-		//model_matrix = glm::translate(model_matrix, triangle_scale);
+		model_matrix = glm::translate(model_matrix, triangle_scale);
 
 
 		glm::mat4 view_matrix;
