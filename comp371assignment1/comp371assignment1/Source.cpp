@@ -227,7 +227,7 @@ void loadRotationSweepData(std::string input) {
 }
 
 void translateProfile() {
-	int tx1, ty1, tz1, tx2, ty2, tz2;
+	GLfloat tx1, ty1, tz1, tx2, ty2, tz2, x, y, z;
 	std::vector<GLfloat> translation;
 	std::cout << "traj points size" << std::endl;
 	std::cout << trajectoryPoints.size() << std::endl;
@@ -245,33 +245,25 @@ void translateProfile() {
 		tz2 = trajectoryPoints[i + 2 + 3];
 		std::cout << trajectoryPoints[i + 2 + 3] << std::endl;
 
+
 		//Create the translation vector
-		translation.push_back((tx2 - tx1));
-		translation.push_back((ty2 - ty1));
-		translation.push_back((tz2 - tz1));
-		std::cout << "Size of translation" << std::endl;
-		std::cout << translation.size() << std::endl;
-		for (int i = 0; i < translation.size(); i++) {
-			std::cout << translation[i] << std::endl;
+		translation.push_back(tx2 - tx1);
+		translation.push_back(ty2 - ty1);
+		translation.push_back(tz2 - tz1);
+		
+	}
+	//Translate each profile point with the vector created above
+	for (int i = 0; i < profilePoints.size(); i += 3) {
+		for (int j = 0; j < translation.size(); j += 3) {
+			vertices.push_back(profilePoints[i] + translation[j]); //Add an x-coordinate of point j in profile to translated x coordinate
+			vertices.push_back(profilePoints[i + 1] + translation[j + 1]);//Add a y-coordinate of point j in profile to translated y coordinate
+			vertices.push_back(profilePoints[i + 2] + translation[j + 2]);//Add a z-coordinate of point j in profile to translated z coordinate
 		}
 
-		/*std::cout << "Translation vector coordinates" << std::endl;
-		for (int x = 0; i < translation.size(); x++) {
-			std::cout << translation[x] << std::endl;
-		}*/
-
-		//Translate each profile point with the vector created above
-		/*for (int j = 0; j < profilePoints.size(); j+3) {
-			vertices.push_back(profilePoints[j] + translation[0]); //Add an x-coordinate of point j in profile to translated x coordinate
-			vertices.push_back(profilePoints[j + 1] + translation[1]);//Add a y-coordinate of point j in profile to translated y coordinate
-			vertices.push_back(profilePoints[j + 2] + translation[2]);//Add a z-coordinate of point j in profile to translated z coordinate
-
-			std::cout << "Vertices vector coordinates" << std::endl;
-			for (int y = 0; i < vertices.size(); y++) {
-				std::cout << vertices[y] << std::endl;
-			}
-		}*/
-
+	}
+	std::cout << "Vertices vector coordinates" << std::endl;
+	for (int y = 0; y < vertices.size(); y++) {
+		std::cout << vertices[y] << std::endl;
 	}
 }
 
