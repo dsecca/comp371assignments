@@ -18,6 +18,7 @@ glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 compo
 /*Vectors for Points and Translations*/
 std::vector<GLfloat> profilePoints;
 std::vector<GLfloat> trajectoryPoints;
+std::vector<GLfloat> vertices;
 int spans;//for rotational
 
 /*Camera*/
@@ -182,7 +183,7 @@ int mode(std::string input) {
 	return mode;
 }
 
-void loadProfileTrajectoryData(std::string input) {
+void loadTranslationSweepData(std::string input) {
 	std::fstream file;
 	int temp, profile_points, trajectory_points;
 	GLfloat x, y, z;
@@ -207,7 +208,7 @@ void loadProfileTrajectoryData(std::string input) {
 	}
 }
 
-void loadProfileData(std::string input) {
+void loadRotationSweepData(std::string input) {
 	std::fstream file;
 	int temp, profile_points;
 	GLfloat x, y, z;
@@ -223,6 +224,59 @@ void loadProfileData(std::string input) {
 		profilePoints.push_back(y);
 		profilePoints.push_back(z);
 	}
+}
+
+void translateProfile() {
+	int tx1, ty1, tz1, tx2, ty2, tz2;
+	std::vector<GLfloat> translation;
+	std::cout << "traj points size" << std::endl;
+	std::cout << trajectoryPoints.size() << std::endl;
+	for (int i = 0; i < (trajectoryPoints.size()-3); i+=3) {
+		tx1 = trajectoryPoints[i]; //get x coordinate
+		std::cout << trajectoryPoints[i] << std::endl;
+		tx2 = trajectoryPoints[i + 3];//Get x coordinate of next point
+		std::cout << trajectoryPoints[i + 3] << std::endl;
+		ty1 = trajectoryPoints[i + 1];
+		std::cout << trajectoryPoints[i + 1] << std::endl;
+		ty2 = trajectoryPoints[i + 1 + 3];
+		std::cout << trajectoryPoints[i + 1 + 3] << std::endl;
+		tz1 = trajectoryPoints[i + 2];
+		std::cout << trajectoryPoints[i + 2] << std::endl;
+		tz2 = trajectoryPoints[i + 2 + 3];
+		std::cout << trajectoryPoints[i + 2 + 3] << std::endl;
+
+		//Create the translation vector
+		translation.push_back((tx2 - tx1));
+		translation.push_back((ty2 - ty1));
+		translation.push_back((tz2 - tz1));
+		std::cout << "Size of translation" << std::endl;
+		std::cout << translation.size() << std::endl;
+		for (int i = 0; i < translation.size(); i++) {
+			std::cout << translation[i] << std::endl;
+		}
+
+		/*std::cout << "Translation vector coordinates" << std::endl;
+		for (int x = 0; i < translation.size(); x++) {
+			std::cout << translation[x] << std::endl;
+		}*/
+
+		//Translate each profile point with the vector created above
+		/*for (int j = 0; j < profilePoints.size(); j+3) {
+			vertices.push_back(profilePoints[j] + translation[0]); //Add an x-coordinate of point j in profile to translated x coordinate
+			vertices.push_back(profilePoints[j + 1] + translation[1]);//Add a y-coordinate of point j in profile to translated y coordinate
+			vertices.push_back(profilePoints[j + 2] + translation[2]);//Add a z-coordinate of point j in profile to translated z coordinate
+
+			std::cout << "Vertices vector coordinates" << std::endl;
+			for (int y = 0; i < vertices.size(); y++) {
+				std::cout << vertices[y] << std::endl;
+			}
+		}*/
+
+	}
+}
+
+void rotateProfile(std::vector<GLfloat> profile) {
+
 }
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -277,12 +331,12 @@ int main()
 
 	/**Load data from file into vectors of profile and/or trajectory points**/
 	if (mode("input_a1.txt") == 0 ) {
-		loadProfileTrajectoryData("input_a1.txt");
+		loadTranslationSweepData("input_a1.txt");
 	}
 	else {
-		loadProfileData("input_a1.txt");
+		loadRotationSweepData("input_a1.txt");
 	}
-
+	translateProfile();
 
 	//Here we create a vector to store the vertices
 
