@@ -1,5 +1,3 @@
-/**USE GLM::TRANSLATE TO TRANSLATE YOUR PROFILE CURVE**/
-
 
 // GLEW
 #define GLEW_STATIC
@@ -54,6 +52,7 @@ GLfloat pitch = 0.0f;
 bool firstMouse = true;
 bool wireFrame = true;
 GLfloat field_of_view = 45.0f;
+GLenum drawingMode = GL_TRIANGLES;//default rendering mode
 
 //MVP
 glm::mat4 model_matrix;
@@ -77,7 +76,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
-	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 		if (wireFrame == true) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			wireFrame = false;
@@ -87,6 +86,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			wireFrame = true;
 		}
 
+	}
+
+	if (keys[GLFW_KEY_P]) {
+		drawingMode = GL_POINTS; //Draw points
+	}
+
+	if (keys[GLFW_KEY_W]) {
+		drawingMode = GL_LINES; //draw lines
+	}
+
+	if (keys[GLFW_KEY_T]) {
+		drawingMode = GL_TRIANGLES; //Draw triangles
 	}
 
 	if (keys[GLFW_KEY_LEFT]) {
@@ -105,43 +116,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		model_matrix = glm::rotate(model_matrix, cameraSpeed, glm::vec3(-1.0f, 0.0f, 0.0f));
 	}
 
-	if (keys[GLFW_KEY_D]) {
+	if (keys[GLFW_KEY_L]) {
 		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
 
 
-	if (keys[GLFW_KEY_A]) {
+	if (keys[GLFW_KEY_J]) {
 		camera_position -= glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
 	}
 
-	if (keys[GLFW_KEY_S]) {
+	if (keys[GLFW_KEY_K]) {
 		camera_position += cameraSpeed * camera_direction;
 	}
 
-	if (keys[GLFW_KEY_W]) {
+	if (keys[GLFW_KEY_I]) {
 		camera_position -= cameraSpeed * camera_direction;
 	}
-	
-	
-	
-	
-	
-	/*if (keys[GLFW_KEY_D]) {
-		camera_translation.x += CAMERA_PAN_STEP * pan_speed;
-	}
 
-
-	if (keys[GLFW_KEY_A]) {
-		camera_translation.x -= CAMERA_PAN_STEP * pan_speed;
-	}
-
-	if (keys[GLFW_KEY_S]) {
-		camera_translation.y -= CAMERA_PAN_STEP * pan_speed;
-	}
-
-	if (keys[GLFW_KEY_W]) {
-		camera_translation.y += CAMERA_PAN_STEP * pan_speed;
-	}*/
 
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -381,7 +372,7 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Triangle", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Assignment 1", nullptr, nullptr);
 	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -490,8 +481,7 @@ int main()
 		glUniformMatrix4fv(transformView, 1, GL_FALSE, glm::value_ptr(view_matrix));
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(drawingMode, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
