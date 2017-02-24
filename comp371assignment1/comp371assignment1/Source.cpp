@@ -1,3 +1,6 @@
+/**USE GLM::TRANSLATE TO TRANSLATE YOUR PROFILE CURVE**/
+
+
 // GLEW
 #define GLEW_STATIC
 #include <glew.h>
@@ -14,23 +17,25 @@
 const GLuint WIDTH = 800, HEIGHT = 800;
 
 glm::vec3 triangle_scale = glm::vec3(1.0f); //shorthand, initializes all 4 components to 1.0f;
+glm::vec3 triangle_rotate = glm::vec3(1.0f);
 
-/*Vectors for Points and Translations*/
-std::vector<GLfloat> profilePoints;
-std::vector<GLfloat> trajectoryPoints;
+ /*Vectors for Points and Translations*/
+std::vector<glm::vec3> profilePoints;
+std::vector<glm::vec3> trajectoryPoints;
 std::vector<GLfloat> vertices;
-int spans;//for rotational
+std::vector<GLuint> indices;
+int spans; //For rotation
 
 /*Camera*/
 //we give the camera its own coordinate system
 glm::vec3 camera_translation = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_position = glm::vec3(0.0f, 0.0f, 3.0f); //z-axis is going through the screen (+ve towards you)
+glm::vec3 camera_position = glm::vec3(0.5f, 0.5f, 3.0f); //z-axis is going through the screen (+ve towards you)
 glm::vec3 camera_target = glm::vec3(0.0f, 0.0f, 0.0f); //Where we want the camera to look, in this case it's the origin
 
 //Camera's z-axis
 glm::vec3 camera_direction = glm::normalize(camera_position - camera_target); //Subtracting position and target vectors yields the direction vector
 
-//Camera's x-axis (cross of direction vector (+ve z-axis) and a vector pointing up (in +ve y-axis direction) 
+																			  //Camera's x-axis (cross of direction vector (+ve z-axis) and a vector pointing up (in +ve y-axis direction) 
 glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);// a vector pointing in positive y-axis
 glm::vec3 camera_right = glm::normalize(glm::cross(up, camera_direction));
 
@@ -47,12 +52,19 @@ GLfloat lastY = 300;
 GLfloat yaw = -90.0f;	// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right (due to how Eular angles work) so we initially rotate a bit to the left.
 GLfloat pitch = 0.0f;
 bool firstMouse = true;
+bool wireFrame = true;
 GLfloat field_of_view = 45.0f;
 
+//MVP
+glm::mat4 model_matrix;
+glm::mat4 view_matrix;
+glm::mat4 projection_matrix;
+
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode){
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	GLfloat pan_speed = 20.0f * deltaTime; //regulate how fast we can pan the camera
 	GLfloat scale_speed = 70.0f * deltaTime;
+	GLfloat cameraSpeed = 20.0f * deltaTime;
 
 	if (action == GLFW_PRESS) {
 		keys[key] = true;
@@ -65,64 +77,77 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
 
+	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+		if (wireFrame == true) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			wireFrame = false;
+		}
+		else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			wireFrame = true;
+		}
+
+	}
+
 	if (keys[GLFW_KEY_LEFT]) {
-		triangle_scale.x -= TRIANGLE_MOVEMENT_STEP * scale_speed;
+		model_matrix = glm::rotate(model_matrix, cameraSpeed, glm::vec3(0.0f, 0.0f, 1.0f));
 	}
 
 	if (keys[GLFW_KEY_RIGHT]) {
-		triangle_scale.x += TRIANGLE_MOVEMENT_STEP * scale_speed;
+		model_matrix = glm::rotate(model_matrix, cameraSpeed, glm::vec3(0.0f, 0.0f, -1.0f));
 	}
 
 	if (keys[GLFW_KEY_UP]) {
-		triangle_scale.y += TRIANGLE_MOVEMENT_STEP * scale_speed;
+		model_matrix = glm::rotate(model_matrix, cameraSpeed, glm::vec3(1.0f, 0.0f, 0.0f));
 	}
-		
 
 	if (keys[GLFW_KEY_DOWN]) {
-		triangle_scale.y -= TRIANGLE_MOVEMENT_STEP * scale_speed;
+		model_matrix = glm::rotate(model_matrix, cameraSpeed, glm::vec3(-1.0f, 0.0f, 0.0f));
 	}
-		
+
 	if (keys[GLFW_KEY_D]) {
+		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
+	}
+
+
+	if (keys[GLFW_KEY_A]) {
+		camera_position -= glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
+	}
+
+	if (keys[GLFW_KEY_S]) {
+		camera_position += cameraSpeed * camera_direction;
+	}
+
+	if (keys[GLFW_KEY_W]) {
+		camera_position -= cameraSpeed * camera_direction;
+	}
+	
+	
+	
+	
+	
+	/*if (keys[GLFW_KEY_D]) {
 		camera_translation.x += CAMERA_PAN_STEP * pan_speed;
 	}
-		
+
 
 	if (keys[GLFW_KEY_A]) {
 		camera_translation.x -= CAMERA_PAN_STEP * pan_speed;
 	}
-		
+
 	if (keys[GLFW_KEY_S]) {
 		camera_translation.y -= CAMERA_PAN_STEP * pan_speed;
 	}
 
 	if (keys[GLFW_KEY_W]) {
 		camera_translation.y += CAMERA_PAN_STEP * pan_speed;
-	}
-		
+	}*/
+
 }
-
-void move_around() {
-	//Walking around
-	GLfloat cameraSpeed = 0.5f * deltaTime;
-	if (keys[GLFW_KEY_I]) {
-		camera_position -= cameraSpeed * camera_direction;
-	}
-	if (keys[GLFW_KEY_K]) {
-		camera_position += cameraSpeed * camera_direction;
-	}
-	if (keys[GLFW_KEY_J]) {
-		camera_position -= glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
-	}
-	if (keys[GLFW_KEY_L]) {
-		camera_position += glm::normalize(glm::cross(camera_direction, camera_up)) * cameraSpeed;
-	}
-}
-
-
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	//Prevents screen from jumping when mouse first enters the window
-	if (firstMouse){ // this bool variable is initially set to true
+	if (firstMouse) { // this bool variable is initially set to true
 		lastX = xpos;
 		lastY = ypos;
 		firstMouse = false;
@@ -135,7 +160,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	GLfloat sensitivity = 0.05f;
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
-	
+
 	yaw += xoffset;
 	pitch += yoffset;
 
@@ -155,21 +180,21 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	camera_translation = glm::normalize(front); //This line may cause errors
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 	GLfloat mouse_scale_speed = 70.0f * deltaTime;
 	if (field_of_view >= 1.0f && field_of_view <= 45.0f) {
 		field_of_view -= yoffset * mouse_scale_speed;
 	}
-		
+
 	if (field_of_view <= 1.0f) {
 		field_of_view = 1.0f;
 	}
-		
+
 	if (field_of_view >= 45.0f) {
 		field_of_view = 45.0f;
 	}
-		
+
 }
 
 //Pass input file to determine if rotation or translation
@@ -192,26 +217,24 @@ void loadTranslationSweepData(std::string input) {
 	file >> temp; //Skip first line
 	file >> profile_points;
 
-	for(int i = 0; i < profile_points; i++) {
+	for (int i = 0; i < profile_points; i++) {
 		file >> x >> y >> z; //Read points from file
-		profilePoints.push_back(x);
-		profilePoints.push_back(y);
-		profilePoints.push_back(z);
+		profilePoints.push_back(glm::vec3(x,y,z));
 	}
 
 	file >> trajectory_points;
 	for (int i = 0; i < trajectory_points; i++) {
 		file >> x >> y >> z; //Read points from file
-		trajectoryPoints.push_back(x);
-		trajectoryPoints.push_back(y);
-		trajectoryPoints.push_back(z);
+		trajectoryPoints.push_back(glm::vec3(x, y, z));
 	}
+
+	file.close();
 }
 
 void loadRotationSweepData(std::string input) {
 	std::fstream file;
 	int temp, profile_points;
-	GLfloat x, y, z;
+	GLfloat x, y, z = 0.0f;
 	file.open(input);
 
 	file >> temp; //Skip first line
@@ -220,56 +243,130 @@ void loadRotationSweepData(std::string input) {
 
 	for (int i = 0; i < profile_points; i++) {
 		file >> x >> y >> z; //Read points from file
-		profilePoints.push_back(x);
-		profilePoints.push_back(y);
-		profilePoints.push_back(z);
+		profilePoints.push_back(glm::vec3(x, y, z));
 	}
+
+	file.close();
 }
 
 void translateProfile() {
-	GLfloat tx1, ty1, tz1, tx2, ty2, tz2, x, y, z;
-	std::vector<GLfloat> translation;
-	std::cout << "traj points size" << std::endl;
-	std::cout << trajectoryPoints.size() << std::endl;
-	for (int i = 0; i < (trajectoryPoints.size()-3); i+=3) {
-		tx1 = trajectoryPoints[i]; //get x coordinate
-		std::cout << trajectoryPoints[i] << std::endl;
-		tx2 = trajectoryPoints[i + 3];//Get x coordinate of next point
-		std::cout << trajectoryPoints[i + 3] << std::endl;
-		ty1 = trajectoryPoints[i + 1];
-		std::cout << trajectoryPoints[i + 1] << std::endl;
-		ty2 = trajectoryPoints[i + 1 + 3];
-		std::cout << trajectoryPoints[i + 1 + 3] << std::endl;
-		tz1 = trajectoryPoints[i + 2];
-		std::cout << trajectoryPoints[i + 2] << std::endl;
-		tz2 = trajectoryPoints[i + 2 + 3];
-		std::cout << trajectoryPoints[i + 2 + 3] << std::endl;
+	//May have to order points??
+	std::vector<glm::vec3> points_to_translate;
+	//Load first profile points into vertices vector
+	for (int a = 0; a < profilePoints.size(); a++) {
+		//Load first profile points into vector for translations
+		points_to_translate.push_back(profilePoints[a]);
+		
+		//Add first points to vertices vector
+		vertices.push_back(profilePoints.at(a).x);
+		vertices.push_back(profilePoints.at(a).y);
+		vertices.push_back(profilePoints.at(a).z);
+	}
+	//Get the trajectory points
+	for (int i = 0; i < (trajectoryPoints.size()-1); i++) {
+
+		//Calculate the trajectory vector by subtracting one point from another
+		glm::vec3 translationVector = trajectoryPoints[i + 1] - trajectoryPoints[i];
+
+		//Add the trajectory points to the previously translated points
+		for (int j = 0; j < points_to_translate.size(); j++) {
+			//Use the previous point to translate to find the new point
+			//Insert the newly translated point at the old point's position
+			GLfloat x, y, z;
+			x = points_to_translate[j].x + translationVector.x;
+			y = points_to_translate[j].y + translationVector.y;
+			z = points_to_translate[j].z + translationVector.z;
+
+			vertices.push_back(x);
+			vertices.push_back(y);
+			vertices.push_back(z);
+			
+			//Replace the old point to translate with the newly translated point
+			points_to_translate.at(j) = glm::vec3(x,y,z);
 
 
-		//Create the translation vector
-		translation.push_back(tx2 - tx1);
-		translation.push_back(ty2 - ty1);
-		translation.push_back(tz2 - tz1);
+		}
 		
 	}
-	//Translate each profile point with the vector created above
-	for (int i = 0; i < profilePoints.size(); i += 3) {
-		for (int j = 0; j < translation.size(); j += 3) {
-			vertices.push_back(profilePoints[i] + translation[j]); //Add an x-coordinate of point j in profile to translated x coordinate
-			vertices.push_back(profilePoints[i + 1] + translation[j + 1]);//Add a y-coordinate of point j in profile to translated y coordinate
-			vertices.push_back(profilePoints[i + 2] + translation[j + 2]);//Add a z-coordinate of point j in profile to translated z coordinate
+
+	//Create indices
+
+	for (int i = 0; i < ((vertices.size()/3) - profilePoints.size()); i++){
+		if ((i + 1) % profilePoints.size() != 0) {
+			// Bottom triangle
+			indices.push_back(i);
+			indices.push_back(i + profilePoints.size());
+			indices.push_back(i + 1);
+
+			// Top triangle
+			indices.push_back(i + profilePoints.size());
+			indices.push_back(i + 1);
+			indices.push_back(i + profilePoints.size() + 1);
 		}
 
 	}
-	std::cout << "Vertices vector coordinates" << std::endl;
-	for (int y = 0; y < vertices.size(); y++) {
-		std::cout << vertices[y] << std::endl;
+
+}
+
+void rotateProfile() {
+	std::vector<glm::vec3> points_to_rotate;
+	glm::mat4 rotation;
+
+	for (int a = 0; a < profilePoints.size(); a++) {
+		//Load first profile points into vector for translations
+		points_to_rotate.push_back(profilePoints[a]);
+
+		//Add first points to vertices vector
+		vertices.push_back(profilePoints.at(a).x);
+		vertices.push_back(profilePoints.at(a).y);
+		vertices.push_back(profilePoints.at(a).z);
 	}
+
+	//For each point in points_to_rotate, 
+	//we apply a rotation to that point
+	//Store the newly rotated point in the vertices vector
+	for (int i = 0; i < spans; i++) {
+
+		//Define the rotation matrix to rotate around the z-axis
+		rotation = glm::rotate(rotation, (float)(360 / spans), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		for(int j = 0; j < points_to_rotate.size(); j++) {
+			
+			glm::vec4 point = glm::vec4(points_to_rotate[j],1.0f);//Get the point to rotate in homogenious coordinates
+
+			point = rotation*point;//Apply rotation to point
+
+			//Push each newly rotated coordinate into vertices vector
+			vertices.push_back(point.x);
+			vertices.push_back(point.y);
+			vertices.push_back(point.z);
+
+		}
+
+	}
+
+	//Create indices
+	for (int i = 0; i < ((vertices.size() / 3) - profilePoints.size()); i++) {
+		if ((i + 1) % profilePoints.size() != 0) {
+			// Bottom triangle
+			indices.push_back(i);
+			indices.push_back(i + profilePoints.size());
+			indices.push_back(i + 1);
+
+			// Top triangle
+			indices.push_back(i + profilePoints.size());
+			indices.push_back(i + 1);
+			indices.push_back(i + profilePoints.size() + 1);
+		}
+
+	}
+
 }
 
-void rotateProfile(std::vector<GLfloat> profile) {
 
-}
+
+
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -294,11 +391,11 @@ int main()
 	glfwMakeContextCurrent(window);
 
 	//Set cursor options to move around with the mouse
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set the required callback functions
 	glfwSetKeyCallback(window, key_callback);
-	//glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
@@ -322,19 +419,14 @@ int main()
 	shader.use();
 
 	/**Load data from file into vectors of profile and/or trajectory points**/
-	if (mode("input_a1.txt") == 0 ) {
+	if (mode("input_a1.txt") == 0) {
 		loadTranslationSweepData("input_a1.txt");
+		translateProfile();
 	}
 	else {
 		loadRotationSweepData("input_a1.txt");
+		rotateProfile();
 	}
-	translateProfile();
-
-	GLuint indices[]{
-		0,1,3, //First triangle
-		1,2,3//Second triangle
-	};
-	//Here we create a vector to store the vertices
 
 
 	GLuint VAO, VBO, EBO;
@@ -348,19 +440,14 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size()* sizeof(GLfloat), &vertices.front(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
-
-	/*Bind first VBO for Trajectory Curve*/
-	/*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices.front(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);*/ // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+	// Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
@@ -379,7 +466,7 @@ int main()
 
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
-		move_around();
+		//move();
 
 		// Render
 		// Clear the colorbuffer
@@ -391,20 +478,11 @@ int main()
 		while ((err = glGetError()) != GL_NO_ERROR) {
 			std::cerr << "OpenGL error: " << err << std::endl;
 		}
-		
-		glm::mat4 model_matrix;
-		model_matrix = glm::scale(model_matrix, triangle_scale);
-		model_matrix = glm::translate(model_matrix, triangle_scale);
 
-
-		glm::mat4 view_matrix;
-		//view_matrix = glm::translate(view_matrix, camera_translation);
-		/*view_matrix = glm::lookAt(glm::vec3(camX, 0.0f, camZ), //camera positioned here
-			glm::vec3(0.0f, 0.0f, 0.0f), //looks at origin
-			glm::vec3(0.0f, 1.0f, 0.0f)); //up vector*/
+		view_matrix;
 		view_matrix = glm::lookAt(camera_position, camera_position + camera_translation, camera_up);
 
-		glm::mat4 projection_matrix;
+		projection_matrix;
 		projection_matrix = glm::perspective(field_of_view, (GLfloat)width / (GLfloat)height, 0.0f, 100.0f);
 
 		//Here we get the matrices located at the uniform location in the shader programs
@@ -412,8 +490,8 @@ int main()
 		glUniformMatrix4fv(transformView, 1, GL_FALSE, glm::value_ptr(view_matrix));
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 		glBindVertexArray(VAO);
-		//glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_INT, (void*)0);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
+		//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
@@ -421,6 +499,9 @@ int main()
 	}
 
 	// Terminate GLFW, clearing any resources allocated by GLFW.
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 	glfwTerminate();
 	return 0;
 }
